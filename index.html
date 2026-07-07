@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4人はさみ将棋</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟️</text></svg>">
+</head>
+<body class="theme-original">
+
+  <!-- ============================ 設定画面 ============================ -->
+  <section id="setup">
+    <h1 class="title">4人はさみ将棋</h1>
+    <p class="subtitle">こんなゲーム見たことない。思考ゲーム — MSX2版（1990年代・雑誌掲載）の復刻</p>
+
+    <div class="setup-box">
+      <h2>プレイヤー登録</h2>
+      <div id="playerRows"></div>
+
+      <h2>モード</h2>
+      <div class="opt-rows">
+        <label><input type="checkbox" id="optNegaeri"> 寝返りモード（取ったコマが自分のコマになる）</label>
+        <label><input type="checkbox" id="optDoubles"> ダブルスモード（対面のプレイヤーが味方になる）</label>
+      </div>
+
+      <h2>画面</h2>
+      <div class="opt-rows">
+        <label><input type="radio" name="visual" id="optModeOriginal" checked> オリジナルモード（MSX2風）</label>
+        <label><input type="radio" name="visual" id="optModeArrange"> アレンジモード（BGM＋リッチグラフィック）</label>
+        <label><input type="checkbox" id="optBgm" checked> BGM（アレンジモード時）</label>
+      </div>
+
+      <button id="startBtn" class="big-btn">ゲーム開始</button>
+
+      <details class="rules">
+        <summary>遊びかた</summary>
+        <ul>
+          <li>青（上）→ 緑（左）→ 黄（下）→ 赤（右）の順に手番が回る。12×12の盤に各10枚。</li>
+          <li>コマは飛車と同じく、タテヨコ一直線に動ける（他のコマは追い越せない）。</li>
+          <li>動かしたコマと自分のコマで、他のプレイヤーのコマをタテかヨコにはさむと取れる（複数枚まとめて可）。</li>
+          <li>コマが残り1枚以下になると敗退。最後まで生き残った1人（ダブルスは1チーム）の勝ち。</li>
+          <li>自分の番のときは盤の周辺色が自分のコマの色になる。<b>G</b>キーまたは「パス」ボタンでパスできる。</li>
+          <li>COM鬼（トレース）は、通った跡すべてに自分のコマが置かれる恐怖のモード。3人がかりでもほとんど勝てない。</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============================ 対局画面 ============================ -->
+  <section id="game" class="hidden">
+    <header id="gameHeader">
+      <span class="title-mini">4人はさみ将棋</span>
+      <div class="controls">
+        <button id="passBtn">パス (G)</button>
+        <button id="undoBtn">待った</button>
+        <button id="modeBtn">🎨 アレンジ</button>
+        <button id="bgmBtn">♪ BGM ON</button>
+        <label class="speed-label">速さ <input type="range" id="speedRange" min="100" max="1200" value="850"></label>
+        <button id="replayBtn">もう一回</button>
+        <button id="backBtn">設定へ</button>
+      </div>
+    </header>
+
+    <main id="gameMain">
+      <div id="boardWrap">
+        <div id="board"></div>
+        <div id="banner" class="hidden">
+          <div id="bannerText"></div>
+          <div class="banner-btns">
+            <button id="bannerReplay">Replay (y)</button>
+            <button id="bannerBack">設定へ (n)</button>
+          </div>
+        </div>
+      </div>
+      <aside id="side">
+        <div id="players"></div>
+        <div id="log"></div>
+      </aside>
+    </main>
+  </section>
+
+  <script src="engine.js"></script>
+  <script src="audio.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>

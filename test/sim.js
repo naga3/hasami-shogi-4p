@@ -38,7 +38,6 @@ function runGame(cfg) {
       alive,
       negaeri: cfg.negaeri,
       doubles: cfg.doubles,
-      trace: cfg.trace,
     })
     if (!m) {
       passes++
@@ -47,7 +46,7 @@ function runGame(cfg) {
       continue
     }
     passes = 0
-    const res = E.applyMove(board, m, p, { ...opts, trace: !!(cfg.trace && cfg.trace[p]) })
+    const res = E.applyMove(board, m, p, opts)
     if (res.captured.length) {
       captured[p] += res.captured.length
       quiet = 0
@@ -89,7 +88,6 @@ const cases = [
   { label: 'つよい vs ふつう混合', levels: [2, 1, 2, 1], n: 3 },
   { label: '寝返りモード', levels: [2, 2, 2, 2], negaeri: true, n: 3 },
   { label: 'ダブルスモード', levels: [2, 2, 2, 2], doubles: true, n: 3 },
-  { label: 'トレース(赤=鬼)', levels: [2, 2, 2, 2], trace: [false, false, false, true], n: 3 },
 ]
 
 let fail = 0

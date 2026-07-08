@@ -9,7 +9,6 @@
  *       敵のコマ列をタテヨコに挟むと取れる。
  * 敗退: 残り 1 枚以下。勝利: 最後まで生き残った 1 人（ダブルスは 1 チーム）。
  * 寝返りモード: 取ったコマが消えずに自分のコマになる。
- * トレースモード: 移動で通った跡すべてに自分のコマが置かれる（開始位置を除く）。
  */
 (function (global) {
   'use strict'
@@ -102,28 +101,15 @@
     return caps
   }
 
-  // 盤面を変更して結果を返す。opts: { negaeri, doubles, trace }
+  // 盤面を変更して結果を返す。opts: { negaeri, doubles }
   function applyMove(b, m, p, opts) {
     opts = opts || {}
-    const trail = []
-    if (opts.trace) {
-      const dr = Math.sign(m.tr - m.fr)
-      const dc = Math.sign(m.tc - m.fc)
-      let r = m.fr + dr
-      let c = m.fc + dc
-      while (r !== m.tr || c !== m.tc) {
-        trail.push([r, c])
-        r += dr
-        c += dc
-      }
-    }
     b[m.fr][m.fc] = null
-    for (const [r, c] of trail) b[r][c] = p
     b[m.tr][m.tc] = p
     const capCells = computeCaptures(b, m.tr, m.tc, p, opts.doubles)
     const captured = capCells.map(([r, c]) => ({ r, c, owner: b[r][c] }))
     for (const [r, c] of capCells) b[r][c] = opts.negaeri ? p : null
-    return { captured, trail }
+    return { captured }
   }
 
   // ---------------------------------------------------------------- AI
@@ -182,7 +168,6 @@
    * cfg: {
    *   level: 0(原作風よわい) | 1(ふつう) | 2(つよい),
    *   alive: [bool×4], negaeri, doubles,
-   *   trace: [bool×4],  // トレースモードのプレイヤー
    *   rng: () => number,
    * }
    */
@@ -190,11 +175,7 @@
     const rng = cfg.rng || Math.random
     const moves = genMoves(board, p)
     if (!moves.length) return null
-    const opts = {
-      negaeri: cfg.negaeri,
-      doubles: cfg.doubles,
-      trace: !!(cfg.trace && cfg.trace[p]),
-    }
+    const opts = { negaeri: cfg.negaeri, doubles: cfg.doubles }
 
     // 原作風: 取れる手があれば取る、なければランダム
     if (cfg.level === 0) {

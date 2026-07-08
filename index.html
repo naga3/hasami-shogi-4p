@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟️</text></svg>">
 </head>
-<body class="theme-original">
+<body>
 
   <!-- ============================ 設定画面 ============================ -->
   <section id="setup">
@@ -24,11 +24,9 @@
         <label><input type="checkbox" id="optDoubles"> ダブルスモード（対面のプレイヤーが味方になる）</label>
       </div>
 
-      <h2>画面</h2>
+      <h2>サウンド</h2>
       <div class="opt-rows">
-        <label><input type="radio" name="visual" id="optModeOriginal" checked> オリジナルモード（MSX2風）</label>
-        <label><input type="radio" name="visual" id="optModeArrange"> アレンジモード（BGM＋リッチグラフィック）</label>
-        <label><input type="checkbox" id="optBgm" checked> BGM（アレンジモード時）</label>
+        <label><input type="checkbox" id="optBgm" checked> BGM</label>
       </div>
 
       <button id="startBtn" class="big-btn">ゲーム開始</button>
@@ -41,7 +39,6 @@
           <li>動かしたコマと自分のコマで、他のプレイヤーのコマをタテかヨコにはさむと取れる（複数枚まとめて可）。</li>
           <li>コマが残り1枚以下になると敗退。最後まで生き残った1人（ダブルスは1チーム）の勝ち。</li>
           <li>自分の番のときは盤の周辺色が自分のコマの色になる。<b>G</b>キーまたは「パス」ボタンでパスできる。</li>
-          <li>COM鬼（トレース）は、通った跡すべてに自分のコマが置かれる恐怖のモード。3人がかりでもほとんど勝てない。</li>
         </ul>
       </details>
     </div>
@@ -54,7 +51,6 @@
       <div class="controls">
         <button id="passBtn">パス (G)</button>
         <button id="undoBtn">待った</button>
-        <button id="modeBtn">🎨 アレンジ</button>
         <button id="bgmBtn">♪ BGM ON</button>
         <label class="speed-label">速さ <input type="range" id="speedRange" min="100" max="1200" value="850"></label>
         <button id="replayBtn">もう一回</button>

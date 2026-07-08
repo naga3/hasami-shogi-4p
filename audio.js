@@ -1,7 +1,6 @@
 /*
  * サウンド — Web Audio 生成（外部ファイル不要）
- *  - オリジナルモード: MSX BASIC の PLAY 文風 MML プレイヤー（矩形波）
- *  - アレンジモード: シンセ SE + チップチューン風 BGM ループ
+ * シンセ SE + チップチューン風 BGM ループ
  */
 (function (global) {
   'use strict'
@@ -23,81 +22,7 @@
     return ctx
   }
 
-  // ------------------------------------------------------------- MML
-  // 対応: tN oN lN a-g(+#/-) 数字=音長 付点 rN >< （sN mN vN は無視）
-  const NOTE_OFFSET = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }
-
-  function parseMML(src) {
-    const notes = []
-    let tempo = 120
-    let octave = 4
-    let defLen = 4
-    let i = 0
-    const s = src.toLowerCase()
-    const readNum = () => {
-      let n = ''
-      while (i < s.length && s[i] >= '0' && s[i] <= '9') n += s[i++]
-      return n === '' ? null : parseInt(n, 10)
-    }
-    while (i < s.length) {
-      const ch = s[i++]
-      if (ch === 't') tempo = readNum() || tempo
-      else if (ch === 'o') octave = readNum() ?? octave
-      else if (ch === 'l') defLen = readNum() || defLen
-      else if (ch === '>') octave++
-      else if (ch === '<') octave--
-      else if (ch === 's' || ch === 'm' || ch === 'v') readNum()
-      else if (ch === 'r' || (ch >= 'a' && ch <= 'g')) {
-        let semitone = null
-        if (ch !== 'r') {
-          semitone = NOTE_OFFSET[ch]
-          if (s[i] === '#' || s[i] === '+') {
-            semitone++
-            i++
-          } else if (s[i] === '-') {
-            semitone--
-            i++
-          }
-        }
-        let len = readNum() || defLen
-        let dur = (60 / tempo) * (4 / len)
-        while (s[i] === '.') {
-          dur *= 1.5
-          i++
-        }
-        const freq = semitone === null ? null : 440 * Math.pow(2, (12 * (octave - 4) + semitone - 9) / 12)
-        notes.push({ freq, dur })
-      }
-    }
-    return notes
-  }
-
-  // 複数チャンネル同時演奏
-  function playMML() {
-    if (!enabled || !ac()) return
-    const t0 = ctx.currentTime + 0.03
-    for (const src of arguments) {
-      let t = t0
-      for (const n of parseMML(src)) {
-        if (n.freq) {
-          const osc = ctx.createOscillator()
-          const g = ctx.createGain()
-          osc.type = 'square'
-          osc.frequency.value = n.freq
-          const d = Math.max(0.04, n.dur - 0.02)
-          g.gain.setValueAtTime(0.12, t)
-          g.gain.exponentialRampToValueAtTime(0.001, t + d)
-          osc.connect(g)
-          g.connect(master)
-          osc.start(t)
-          osc.stop(t + d)
-        }
-        t += n.dur
-      }
-    }
-  }
-
-  // -------------------------------------------------------- アレンジ SE
+  // -------------------------------------------------------- SE
   function blip(freq, dur, type, vol, slide) {
     if (!enabled || !ac()) return
     const t = ctx.currentTime
@@ -135,43 +60,31 @@
   }
 
   const sfx = {
-    original: {
-      select: () => playMML('t180o4c8g8'),
-      cancel: () => playMML('t180o4g8c8'),
-      move: () => playMML('t180o4g8c8'),
-      capture: () => playMML('t210o4e16c16o3g8'),
-      pass: () => playMML('t180o3g8'),
-      start: () => playMML('t130o5co4g8.a16o5c2'),
-      win: () => playMML('t120o5c4co4g8.a16g8.e16g8.d16c2', 't120o3l4co2agao3cdc2'),
-      lose: () => playMML('t100o3e4c4o2a2'),
+    select: () => blip(660, 0.08, 'triangle', 0.12, 990),
+    cancel: () => blip(660, 0.08, 'triangle', 0.1, 440),
+    move: () => {
+      blip(330, 0.12, 'sine', 0.14, 220)
+      noiseBurst(0.05, 0.05, 4000)
     },
-    arrange: {
-      select: () => blip(660, 0.08, 'triangle', 0.12, 990),
-      cancel: () => blip(660, 0.08, 'triangle', 0.1, 440),
-      move: () => {
-        blip(330, 0.12, 'sine', 0.14, 220)
-        noiseBurst(0.05, 0.05, 4000)
-      },
-      capture: () => {
-        blip(880, 0.25, 'sawtooth', 0.12, 110)
-        noiseBurst(0.18, 0.1, 1200)
-      },
-      pass: () => blip(220, 0.15, 'sine', 0.1),
-      start: () => {
-        blip(261.6, 0.5, 'triangle', 0.1)
-        setTimeout(() => blip(392, 0.5, 'triangle', 0.1), 120)
-        setTimeout(() => blip(523.3, 0.7, 'triangle', 0.12), 240)
-      },
-      win: () => {
-        ;[523.3, 659.3, 784, 1046.5].forEach((f, i) => setTimeout(() => blip(f, 0.6, 'square', 0.08), i * 150))
-      },
-      lose: () => {
-        ;[392, 311.1, 261.6].forEach((f, i) => setTimeout(() => blip(f, 0.5, 'sawtooth', 0.07), i * 200))
-      },
+    capture: () => {
+      blip(880, 0.25, 'sawtooth', 0.12, 110)
+      noiseBurst(0.18, 0.1, 1200)
+    },
+    pass: () => blip(220, 0.15, 'sine', 0.1),
+    start: () => {
+      blip(261.6, 0.5, 'triangle', 0.1)
+      setTimeout(() => blip(392, 0.5, 'triangle', 0.1), 120)
+      setTimeout(() => blip(523.3, 0.7, 'triangle', 0.12), 240)
+    },
+    win: () => {
+      ;[523.3, 659.3, 784, 1046.5].forEach((f, i) => setTimeout(() => blip(f, 0.6, 'square', 0.08), i * 150))
+    },
+    lose: () => {
+      ;[392, 311.1, 261.6].forEach((f, i) => setTimeout(() => blip(f, 0.5, 'sawtooth', 0.07), i * 200))
     },
   }
 
-  // -------------------------------------------------------- アレンジ BGM
+  // -------------------------------------------------------- BGM
   // Am → F → C → G の 4 小節ループ（ベース + アルペジオ + ドラム）
   const BGM = {
     playing: false,
@@ -284,7 +197,6 @@
 
   global.HasamiAudio = {
     sfx,
-    playMML,
     startBGM,
     stopBGM,
     get bgmPlaying() {

@@ -1,5 +1,5 @@
 /*
- * 4人はさみ将棋 — UI（設定画面 / 対局画面 / オリジナル・アレンジ両モード）
+ * 4人はさみ将棋 — UI（設定画面 / 対局画面）
  */
 (function () {
   'use strict'
@@ -19,9 +19,8 @@
     com0: 'COM よわい',
     com1: 'COM ふつう',
     com2: 'COM つよい',
-    com9: 'COM 鬼(トレース)',
   }
-  const LEVEL_OF = { com0: 0, com1: 1, com2: 2, com9: 2 }
+  const LEVEL_OF = { com0: 0, com1: 1, com2: 2 }
   const QUIET_LIMIT = 100
 
   // ------------------------------------------------------------ 状態
@@ -32,7 +31,6 @@
   let destMap = null // Map "r,c" -> {cap:bool}
   let aiTimer = null
   let animating = false
-  let theme = 'original'
   let bgmOn = true
   let speed = 450
 
@@ -40,7 +38,7 @@
   const cells = [] // DOM cells [r*SIZE+c]
 
   function sfx() {
-    return A.sfx[theme === 'original' ? 'original' : 'arrange']
+    return A.sfx
   }
 
   // ------------------------------------------------------------ 設定画面
@@ -59,7 +57,6 @@
           <option value="com0">COM よわい（原作風）</option>
           <option value="com1">COM ふつう</option>
           <option value="com2">COM つよい</option>
-          <option value="com9">COM 鬼（トレース）</option>
         </select>`
       wrap.appendChild(row)
     })
@@ -114,12 +111,8 @@
     setTimeout(startTurn, 600)
   }
 
-  function traceArr() {
-    return cfg.types.map((t) => t === 'com9')
-  }
-
-  function moveOpts(p) {
-    return { negaeri: cfg.negaeri, doubles: cfg.doubles, trace: cfg.types[p] === 'com9' }
+  function moveOpts() {
+    return { negaeri: cfg.negaeri, doubles: cfg.doubles }
   }
 
   function aliveCount() {
@@ -151,7 +144,6 @@
         alive: st.alive,
         negaeri: cfg.negaeri,
         doubles: cfg.doubles,
-        trace: traceArr(),
       })
       if (m) doMove(m)
       else doPass(true)
@@ -200,7 +192,7 @@
     const p = st.turn
     snapshot()
     st.passes = 0
-    const res = E.applyMove(st.board, m, p, moveOpts(p))
+    const res = E.applyMove(st.board, m, p, moveOpts())
     st.lastMove = m
     if (res.captured.length) {
       st.captured[p] += res.captured.length
@@ -292,7 +284,7 @@
       destMap = new Map()
       for (const [tr, tc] of E.rookDests(st.board, r, c)) {
         const b = E.cloneBoard(st.board)
-        const res = E.applyMove(b, { fr: r, fc: c, tr, tc }, p, moveOpts(p))
+        const res = E.applyMove(b, { fr: r, fc: c, tr, tc }, p, moveOpts())
         destMap.set(tr + ',' + tc, { cap: res.captured.length > 0 })
       }
       sfx().select()
@@ -454,17 +446,10 @@
     return s.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch])
   }
 
-  // ------------------------------------------------------------ モード / BGM
-  function applyTheme() {
-    document.body.classList.toggle('theme-original', theme === 'original')
-    document.body.classList.toggle('theme-arrange', theme === 'arrange')
-    $('modeBtn').textContent = theme === 'original' ? '🎨 アレンジ' : '📺 オリジナル'
-    updateBGM()
-  }
-
+  // ------------------------------------------------------------ BGM
   function updateBGM() {
     const inGame = st && !$('game').classList.contains('hidden')
-    if (theme === 'arrange' && bgmOn && inGame) A.startBGM()
+    if (bgmOn && inGame) A.startBGM()
     else A.stopBGM()
     $('bgmBtn').textContent = bgmOn ? '♪ BGM ON' : '♪ BGM OFF'
     $('bgmBtn').classList.toggle('off', !bgmOn)
@@ -474,23 +459,15 @@
   function init() {
     buildSetup()
     buildBoard()
-    theme = $('optModeArrange').checked ? 'arrange' : 'original'
-    applyTheme()
 
     $('startBtn').addEventListener('click', () => {
-      theme = $('optModeArrange').checked ? 'arrange' : 'original'
       bgmOn = $('optBgm').checked
-      applyTheme()
       startGame(readSetup())
     })
     $('passBtn').addEventListener('click', () => {
       if (st && !st.over && cfg.types[st.turn] === 'human' && !animating) doPass(false)
     })
     $('undoBtn').addEventListener('click', undo)
-    $('modeBtn').addEventListener('click', () => {
-      theme = theme === 'original' ? 'arrange' : 'original'
-      applyTheme()
-    })
     $('bgmBtn').addEventListener('click', () => {
       bgmOn = !bgmOn
       A.unlock()
